@@ -161,7 +161,7 @@ class SerialBridge(Node):
         self.last_transform = t
         self.tf_broadcaster.sendTransform(t)
         self.get_logger().info(
-            f"[ODOM] x={self.x:.3f}, vx={vx:.3f}, dt={dt:.3f}, yaw={math.degrees(self.yaw):.1f}"
+            f"[ODOM] x={self.x:.3f}, y={self.y:.3f}, vx={vx:.3f}, dt={dt:.3f}, yaw={math.degrees(self.yaw):.1f}"
         )
 
     def _publish_tf(self):

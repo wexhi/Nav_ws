@@ -40,6 +40,7 @@ setup(
             # 2) 下行控制节点
             "serial_commander = serial_bridge.serial_commander:main",
             "wasdx_teleop = serial_bridge.wasdx_teleop:main",
+            "point_move = serial_bridge.point_move:main",
         ],
     },
 )
