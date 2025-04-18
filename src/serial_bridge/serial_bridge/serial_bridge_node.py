@@ -14,6 +14,7 @@ from datetime import datetime
 import threading
 from tf_transformations import euler_from_quaternion  # ✅ 新增
 from serial_bridge.crc_utils import CRC16_TABLE
+import math
 
 # —— Frame constants ——
 HEADER = 0x5A
@@ -159,6 +160,9 @@ class SerialBridge(Node):
         t.transform.rotation.w = w
         self.last_transform = t
         self.tf_broadcaster.sendTransform(t)
+        self.get_logger().info(
+            f"[ODOM] x={self.x:.3f}, vx={vx:.3f}, dt={dt:.3f}, yaw={math.degrees(self.yaw):.1f}"
+        )
 
     def _publish_tf(self):
         if self.last_transform:
