@@ -5,8 +5,8 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 
 # 速度步进和最大值
-VX_STEP, WZ_STEP = 0.05, 0.3
-VX_MAX, WZ_MAX = 0.2, 1.0
+VX_STEP, WZ_STEP = 0.1, 0.6
+VX_MAX, WZ_MAX = 0.2, 1.2
 
 
 def getch(timeout=0.1):

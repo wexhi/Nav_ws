@@ -12,14 +12,16 @@ import tf2_ros
 from math import cos, sin
 from datetime import datetime
 import threading
+from tf_transformations import euler_from_quaternion  # ✅ 新增
 from serial_bridge.crc_utils import CRC16_TABLE
 
 # —— Frame constants ——
 HEADER = 0x5A
 TAIL = 0xAA
 FRAME_LEN = 40  # bytes
-# real_vx, real_wz, quaternion (w,x,y,z), ax, ay, az
-_STRUCT = struct.Struct("<ff4ffff")
+_STRUCT = struct.Struct(
+    "<ff4ffff"
+)  # real_vx, real_wz, quaternion (w,x,y,z), ax, ay, az
 
 # —— CRC-16 table generation (poly 0x1021) ——
 poly = 0x1021
@@ -34,9 +36,6 @@ for byte in range(256):
 
 
 def crc16(data: bytes, init_crc: int = 0xFFFF) -> int:
-    """
-    Compute CRC-16 (poly 0x1021) via table lookup.
-    """
     crc = init_crc
     for b in data:
         crc = ((crc >> 8) ^ CRC16_TABLE[(crc ^ b) & 0xFF]) & 0xFFFF
@@ -58,9 +57,6 @@ def parse_frame(frame: bytes) -> dict:
 
 
 def find_frames(stream: serial.Serial):
-    """
-    Yield valid frames from serial stream.
-    """
     buf = deque(maxlen=2 * FRAME_LEN)
     while True:
         data = stream.read(stream.in_waiting or 1)
@@ -74,7 +70,6 @@ def find_frames(stream: serial.Serial):
             if candidate[-1] != TAIL:
                 buf.appendleft(candidate[1])
                 continue
-            # CRC covers bytes 0 to FRAME_LEN-3
             if crc16(candidate[:-3]) != int.from_bytes(candidate[-3:-1], "little"):
                 buf.appendleft(candidate[1])
                 continue
@@ -84,17 +79,14 @@ def find_frames(stream: serial.Serial):
 class SerialBridge(Node):
     def __init__(self):
         super().__init__("serial_bridge")
-        # 1. 声明参数，给一个默认值
         self.declare_parameter(
             "port", "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"
         )
         self.declare_parameter("baudrate", 115200)
 
-        # 2. 从参数服务器读取
         port = self.get_parameter("port").get_parameter_value().string_value
         baud = self.get_parameter("baudrate").get_parameter_value().integer_value
 
-        # 3. 打日志并打开串口
         self.get_logger().info(f"Opening serial port {port} @{baud}")
         self.ser = serial.Serial(port, baud, timeout=0.02)
 
@@ -104,7 +96,7 @@ class SerialBridge(Node):
         self.x = self.y = self.yaw = 0.0
         self.prev_time = self.get_clock().now()
         self.last_transform = None
-        # start serial reading in background
+
         threading.Thread(target=self._serial_loop, daemon=True).start()
 
     def _serial_loop(self):
@@ -120,10 +112,11 @@ class SerialBridge(Node):
         w, x, y, z = msg["q"]
         ax, ay, az = msg["ax"], msg["ay"], msg["az"]
 
-        # integrate odometry
+        # ✅ 关键修改：用四元数提取 yaw 来积分位姿
+        _, _, yaw = euler_from_quaternion((x, y, z, w))  # 注意顺序
+        self.yaw = yaw
         self.x += vx * dt * cos(self.yaw)
         self.y += vx * dt * sin(self.yaw)
-        self.yaw += wz * dt
 
         # publish Odometry
         odom = Odometry()
@@ -177,7 +170,6 @@ class SerialBridge(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = SerialBridge()
-    # republish last transform at 50Hz
     node.create_timer(0.02, node._publish_tf)
     executor = MultiThreadedExecutor()
     executor.add_node(node)
