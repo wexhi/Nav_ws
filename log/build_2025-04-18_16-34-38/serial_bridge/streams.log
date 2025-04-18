@@ -1,0 +1,27 @@
+[0.390s] Invoking command in '/home/cy/Study/Nav_ws/src/serial_bridge': PYTHONPATH=/home/cy/Study/Nav_ws/build/serial_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cy/Study/Nav_ws/install/serial_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/serial_bridge build --build-base /home/cy/Study/Nav_ws/build/serial_bridge/build install --record /home/cy/Study/Nav_ws/build/serial_bridge/install.log --single-version-externally-managed install_data
+[0.538s] running egg_info
+[0.538s] writing ../../build/serial_bridge/serial_bridge.egg-info/PKG-INFO
+[0.538s] writing dependency_links to ../../build/serial_bridge/serial_bridge.egg-info/dependency_links.txt
+[0.539s] writing entry points to ../../build/serial_bridge/serial_bridge.egg-info/entry_points.txt
+[0.539s] writing requirements to ../../build/serial_bridge/serial_bridge.egg-info/requires.txt
+[0.539s] writing top-level names to ../../build/serial_bridge/serial_bridge.egg-info/top_level.txt
+[0.540s] reading manifest file '../../build/serial_bridge/serial_bridge.egg-info/SOURCES.txt'
+[0.541s] writing manifest file '../../build/serial_bridge/serial_bridge.egg-info/SOURCES.txt'
+[0.541s] running build
+[0.541s] running build_py
+[0.541s] copying serial_bridge/crc_utils.py -> /home/cy/Study/Nav_ws/build/serial_bridge/build/lib/serial_bridge
+[0.541s] copying serial_bridge/serial_bridge_node.py -> /home/cy/Study/Nav_ws/build/serial_bridge/build/lib/serial_bridge
+[0.541s] running install
+[0.541s] running install_lib
+[0.542s] copying /home/cy/Study/Nav_ws/build/serial_bridge/build/lib/serial_bridge/crc_utils.py -> /home/cy/Study/Nav_ws/install/serial_bridge/lib/python3.10/site-packages/serial_bridge
+[0.542s] copying /home/cy/Study/Nav_ws/build/serial_bridge/build/lib/serial_bridge/serial_bridge_node.py -> /home/cy/Study/Nav_ws/install/serial_bridge/lib/python3.10/site-packages/serial_bridge
+[0.542s] byte-compiling /home/cy/Study/Nav_ws/install/serial_bridge/lib/python3.10/site-packages/serial_bridge/crc_utils.py to crc_utils.cpython-310.pyc
+[0.543s] byte-compiling /home/cy/Study/Nav_ws/install/serial_bridge/lib/python3.10/site-packages/serial_bridge/serial_bridge_node.py to serial_bridge_node.cpython-310.pyc
+[0.544s] running install_data
+[0.544s] running install_egg_info
+[0.545s] removing '/home/cy/Study/Nav_ws/install/serial_bridge/lib/python3.10/site-packages/serial_bridge-0.0.0-py3.10.egg-info' (and everything under it)
+[0.545s] Copying ../../build/serial_bridge/serial_bridge.egg-info to /home/cy/Study/Nav_ws/install/serial_bridge/lib/python3.10/site-packages/serial_bridge-0.0.0-py3.10.egg-info
+[0.546s] running install_scripts
+[0.560s] Installing serial_bridge script to /home/cy/Study/Nav_ws/install/serial_bridge/lib/serial_bridge
+[0.561s] writing list of installed files to '/home/cy/Study/Nav_ws/build/serial_bridge/install.log'
+[0.576s] Invoked command in '/home/cy/Study/Nav_ws/src/serial_bridge' returned '0': PYTHONPATH=/home/cy/Study/Nav_ws/build/serial_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cy/Study/Nav_ws/install/serial_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/serial_bridge build --build-base /home/cy/Study/Nav_ws/build/serial_bridge/build install --record /home/cy/Study/Nav_ws/build/serial_bridge/install.log --single-version-externally-managed install_data
