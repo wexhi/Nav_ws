@@ -5,19 +5,34 @@ package_name = "serial_bridge"
 setup(
     name=package_name,
     version="0.0.0",
-    packages=find_packages(exclude=["test"]),
+    # 明确 include 本包和所有子模块
+    packages=find_packages(include=[package_name, package_name + ".*"]),
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
+        ("share/" + package_name + "/launch", ["launch/serial_bridge_launch.py"]),
+        ("share/" + package_name + "/config", ["config/serial_bridge.rviz"]),
     ],
-    install_requires=["setuptools"],
+    # 加上运行时依赖
+    install_requires=[
+        "setuptools",
+        "rclpy",  # ROS 2 Python 客户端库
+        "geometry_msgs",  # Twist 消息定义
+        "pyserial",  # 串口通信
+    ],
     zip_safe=True,
     maintainer="cy",
     maintainer_email="1477530671@qq.com",
-    description="TODO: Package description",
-    license="TODO: License declaration",
+    description="串口桥接 ROS2 节点包",
+    license="MIT",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": ["serial_bridge = serial_bridge.serial_bridge_node:main"],
+        "console_scripts": [
+            # 1) 原先的上行节点
+            "serial_bridge = serial_bridge.serial_bridge_node:main",
+            # 2) 下行控制节点
+            "serial_commander = serial_bridge.serial_commander:main",
+            "wasdx_teleop = serial_bridge.wasdx_teleop:main",
+        ],
     },
 )

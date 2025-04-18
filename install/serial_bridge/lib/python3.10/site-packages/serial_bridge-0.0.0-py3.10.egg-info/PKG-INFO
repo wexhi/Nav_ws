@@ -1,11 +1,11 @@
 Metadata-Version: 2.1
 Name: serial-bridge
 Version: 0.0.0
-Summary: TODO: Package description
+Summary: 串口桥接 ROS2 节点包
 Home-page: UNKNOWN
 Maintainer: cy
 Maintainer-email: 1477530671@qq.com
-License: TODO: License declaration
+License: MIT
 Platform: UNKNOWN
 
 UNKNOWN
