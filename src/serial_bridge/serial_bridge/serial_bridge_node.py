@@ -84,8 +84,20 @@ def find_frames(stream: serial.Serial):
 class SerialBridge(Node):
     def __init__(self):
         super().__init__("serial_bridge")
-        self.get_logger().info("Opening serial port /dev/ttyUSB0 @115200")
-        self.ser = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.02)
+        # 1. 声明参数，给一个默认值
+        self.declare_parameter(
+            "port", "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"
+        )
+        self.declare_parameter("baudrate", 115200)
+
+        # 2. 从参数服务器读取
+        port = self.get_parameter("port").get_parameter_value().string_value
+        baud = self.get_parameter("baudrate").get_parameter_value().integer_value
+
+        # 3. 打日志并打开串口
+        self.get_logger().info(f"Opening serial port {port} @{baud}")
+        self.ser = serial.Serial(port, baud, timeout=0.02)
+
         self.odom_pub = self.create_publisher(Odometry, "odom", 10)
         self.imu_pub = self.create_publisher(Imu, "imu/data_raw", 10)
         self.tf_broadcaster = tf2_ros.TransformBroadcaster(self)

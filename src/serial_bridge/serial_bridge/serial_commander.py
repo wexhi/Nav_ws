@@ -20,23 +20,39 @@ def calc_crc16(data: bytes, init_crc=0xFFFF) -> int:
 class SerialCommander(Node):
     def __init__(self):
         super().__init__("serial_commander")
-        # 根据实际串口号和波特率打开
-        self.ser = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.1)
+
+        # 1. 声明参数及默认值
+        self.declare_parameter("port", "/dev/ttyUSB0")
+        self.declare_parameter("baudrate", 115200)
+
+        # 2. 读取参数
+        port = self.get_parameter("port").get_parameter_value().string_value
+        baud = self.get_parameter("baudrate").get_parameter_value().integer_value
+
+        # 3. 打日志并打开串口
+        self.get_logger().info(f"Opening serial port {port} @{baud}")
+        self.ser = serial.Serial(port, baud, timeout=0.1)
+
+        # 订阅 cmd_vel
         self.sub = self.create_subscription(Twist, "cmd_vel", self.cmd_vel_cb, 10)
         self.get_logger().info("SerialCommander 初始化完成")
 
     def cmd_vel_cb(self, msg: Twist):
         vx = float(msg.linear.x)
         wz = float(msg.angular.z)
-        # 按小端打包两个 float
+
+        # 打包 payload
         payload = struct.pack("<ff", vx, wz)
-        # 计算 CRC（对 header 之后到 payload 末尾）
         crc = calc_crc16(bytes([CMD_HEADER]) + payload)
-        frame = bytearray()
-        frame.append(CMD_HEADER)
-        frame += payload
-        frame += struct.pack("<H", crc)
-        frame.append(CMD_TAIL)
+
+        # 组帧
+        frame = (
+            bytearray([CMD_HEADER])
+            + payload
+            + struct.pack("<H", crc)
+            + bytearray([CMD_TAIL])
+        )
+
         # 发送
         self.ser.write(frame)
         self.get_logger().debug(
@@ -51,5 +67,10 @@ def main(args=None):
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
-    node.destroy_node()
-    rclpy.shutdown()
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()
