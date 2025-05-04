@@ -20,12 +20,12 @@ def generate_launch_description():
                 parameters=[{"use_sim_time": False}],
             ),
             # 2) Launch RViz with the saved configuration
-            Node(
-                package="rviz2",
-                executable="rviz2",
-                name="rviz2",
-                output="screen",
-                arguments=["-d", rviz_config],
-            ),
+            # Node(
+            #     package="rviz2",
+            #     executable="rviz2",
+            #     name="rviz2",
+            #     output="screen",
+            #     arguments=["-d", rviz_config],
+            # ),
         ]
     )

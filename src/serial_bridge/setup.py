@@ -16,6 +16,7 @@ setup(
                 "launch/serial_bridge_launch.py",
                 "launch/serial_commander_launch.py",
                 "launch/wasdx_teleop_launch.py",
+                "launch/slam_launch.py",
             ],
         ),
         ("share/" + package_name + "/config", ["config/serial_bridge.rviz"]),
