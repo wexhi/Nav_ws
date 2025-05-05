@@ -109,7 +109,7 @@ class SerialBridge(Node):
         dt = (now - self.prev_time).nanoseconds * 1e-9
         self.prev_time = now
         msg = parse_frame(frame)
-        vx, wz = msg["real_vx"], msg["real_wz"]
+        vx, wz = -msg["real_vx"], -msg["real_wz"]
         w, x, y, z = msg["q"]
         ax, ay, az = msg["ax"], msg["ay"], msg["az"]
 
