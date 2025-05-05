@@ -19,6 +19,7 @@ setup(
                 "launch/slam_launch.py",
                 "launch/pi_startup_launch.py",
                 "launch/pc_startup_launch.py",
+                "launch/nav_with_map_launch.py",
             ],
         ),
         ("share/" + package_name + "/config", ["config/serial_bridge.rviz"]),
