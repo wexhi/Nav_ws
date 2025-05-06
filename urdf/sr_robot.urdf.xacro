@@ -1,0 +1,205 @@
+<?xml version="1.0"?>
+<robot name="sweeper_bot" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- ────────────────── 通用参数 ────────────────── -->
+  <xacro:property name="wheel_radius"       value="0.03"/>   <!-- m -->
+  <xacro:property name="wheel_length"       value="0.02"/>   <!-- 轮子厚度 -->
+  <xacro:property name="wheel_separation"   value="0.18"/>   <!-- 左右轮中心距 -->
+  <xacro:property name="base_radius"        value="0.11"/>
+  <xacro:property name="base_height"        value="0.05"/>
+  <xacro:property name="wheel_mass"         value="0.10"/>   <!-- kg，每个轮子的质量 -->
+  <xacro:property name="base_mass"          value="1.00"/>   <!-- kg，底盘质量 -->
+
+  <!-- ────────────────── 链  接 ────────────────── -->
+  <!-- base_link -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder radius="${base_radius}" length="${base_height}"/>
+      </geometry>
+      <origin xyz="0 0 ${base_height/2}" rpy="0 0 0"/>
+      <material name="gray"><color rgba="0.6 0.6 0.6 1.0"/></material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${base_radius}" length="${base_height}"/>
+      </geometry>
+      <origin xyz="0 0 ${base_height/2}" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="${base_mass}"/>
+      <origin xyz="0 0 ${base_height/2}" rpy="0 0 0"/>
+      <!-- 粗略圆柱惯性估计：Izz > Ixx = Iyy -->
+      <inertia ixx="0.01" iyy="0.01" izz="0.02" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- base_footprint（仅 TF 基准，无视觉） -->
+  <link name="base_footprint"/>
+
+  <!-- left_wheel -->
+  <link name="left_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+      </geometry>
+      <origin xyz="0 ${wheel_separation/2} ${wheel_radius}" rpy="1.5708 0 0"/>
+      <material name="black"><color rgba="0.1 0.1 0.1 1.0"/></material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <!-- 圆柱惯性：I = ½ m r²（沿轴），I = 1/12 m (3r² + l²)（与轴垂直） -->
+      <inertia ixx="1e-4" iyy="1e-4" izz="2e-4" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- right_wheel -->
+  <link name="right_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+      </geometry>
+      <origin xyz="0 -${wheel_separation/2} ${wheel_radius}" rpy="1.5708 0 0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-4" iyy="1e-4" izz="2e-4" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- imu_link（前方） -->
+  <link name="imu_link">
+    <visual>
+      <geometry>
+        <box size="0.03 0.03 0.02"/>
+      </geometry>
+      <origin xyz="0.09 0 0.05" rpy="0 0 0"/>
+      <material name="blue"><color rgba="0.1 0.1 0.8 1.0"/></material>
+    </visual>
+  </link>
+
+  <!-- base_laser（后方） -->
+  <link name="base_laser">
+    <visual>
+      <geometry>
+        <cylinder radius="0.02" length="0.05"/>
+      </geometry>
+      <origin xyz="-0.09 0 0.10" rpy="1.5708 0 0"/>
+      <material name="red"><color rgba="0.8 0.1 0.1 1.0"/></material>
+    </visual>
+  </link>
+
+  <!-- ────────────────── 关  节 ────────────────── -->
+  <!-- base_footprint 固定到 base_link -->
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child  link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="left_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child  link="left_wheel"/>
+    <origin xyz="0 ${wheel_separation/2} ${wheel_radius}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <joint name="right_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child  link="right_wheel"/>
+    <origin xyz="0 -${wheel_separation/2} ${wheel_radius}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="imu_link"/>
+    <origin xyz="0.09 0 0.05" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="laser_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="base_laser"/>
+    <origin xyz="-0.09 0 0.10" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ────────────────── Transmissions（可选，用于 ros2_control） ────────────────── -->
+  <!-- 如只用 Gazebo diff_drive 插件，可跳过；如需切换 diff_drive_controller 则保留 -->
+  <transmission name="left_wheel_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="left_wheel_joint">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="left_wheel_motor">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="right_wheel_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="right_wheel_joint">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="right_wheel_motor">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <!-- ────────────────── Gazebo 插件 & 材质 ────────────────── -->
+  <gazebo>
+    <plugin name="diff_drive" filename="libgazebo_ros_diff_drive.so">
+      <ros>
+        <namespace>/</namespace>
+      </ros>
+      <update_rate>50</update_rate>
+      <left_joint>left_wheel_joint</left_joint>
+      <right_joint>right_wheel_joint</right_joint>
+      <wheel_separation>${wheel_separation}</wheel_separation>
+      <wheel_diameter>${2*wheel_radius}</wheel_diameter>
+      <command_topic>/cmd_vel</command_topic>
+      <odometry_topic>/odom</odometry_topic>
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <publish_tf>true</publish_tf>
+      <publish_odom>true</publish_odom>
+      <enable_velocity_rolling_mean>true</enable_velocity_rolling_mean>
+    </plugin>
+  </gazebo>
+
+  <!-- 摩擦 & 物理参数 -->
+  <gazebo reference="left_wheel">
+    <mu1>0.8</mu1>
+    <mu2>0.8</mu2>
+    <kp>1000000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+
+  <gazebo reference="right_wheel">
+    <mu1>0.8</mu1>
+    <mu2>0.8</mu2>
+    <kp>1000000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+
+  <gazebo reference="base_link">
+    <material>Gazebo/Gray</material>
+  </gazebo>
+
+</robot>

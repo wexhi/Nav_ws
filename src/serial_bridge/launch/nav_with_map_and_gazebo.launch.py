@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.actions import SetEnvironmentVariable
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    ExecuteProcess,
+    SetEnvironmentVariable,
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, Command, PathJoinSubstitution
 from ament_index_python.packages import get_package_share_directory
@@ -9,9 +13,8 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-
-    # ──────────────── 通用参数 ────────────────
-    use_sim_time = LaunchConfiguration("use_sim_time", default="false")
+    # ──────────────── 参数配置 ────────────────
+    use_sim_time = LaunchConfiguration("use_sim_time", default="true")
     map_yaml = LaunchConfiguration(
         "map", default="/home/cy/Study/Nav_ws/maps/B406_half_map.yaml"
     )
@@ -21,11 +24,61 @@ def generate_launch_description():
     urdf_file = LaunchConfiguration(
         "urdf", default="/home/cy/Study/Nav_ws/urdf/sr_robot.urdf.xacro"
     )
+    world_file = LaunchConfiguration(
+        "world", default="/home/cy/Study/Nav_ws/worlds/my_room.world"
+    )
 
-    # ──────────────── 生成 robot_description ────────────────
+    # ──────────────── robot_description ────────────────
     robot_desc = Command(["xacro ", urdf_file, " use_sim_time:=", use_sim_time])
 
-    # ──────────────── 引入官方 bringup ────────────────
+    # ──────────────── 启动 Gazebo 仿真 ────────────────
+    gazebo = ExecuteProcess(
+        cmd=["gazebo", "--verbose", world_file, "-s", "libgazebo_ros_factory.so"],
+        output="screen",
+    )
+
+    spawn_entity = Node(
+        package="gazebo_ros",
+        executable="spawn_entity.py",
+        arguments=["-topic", "robot_description", "-entity", "sweeper_bot"],
+        output="screen",
+    )
+
+    # ──────────────── 启动 robot_state_publisher ────────────────
+    rsp = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        name="robot_state_publisher",
+        parameters=[{"robot_description": robot_desc, "use_sim_time": use_sim_time}],
+        output="screen",
+    )
+
+    # ──────────────── 静态 TF（base_link → laser, imu, footprint）──────────────
+    static_tf = [
+        Node(
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            name="tf_basefootprint",
+            arguments=["0", "0", "0", "0", "0", "0", "base_link", "base_footprint"],
+            output="screen",
+        ),
+        Node(
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            name="tf_baselaser",
+            arguments=["0", "0", "0.18", "0", "0", "0", "base_link", "base_laser"],
+            output="screen",
+        ),
+        Node(
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            name="tf_imu",
+            arguments=["0", "0", "0.10", "0", "0", "0", "base_link", "imu_link"],
+            output="screen",
+        ),
+    ]
+
+    # ──────────────── Nav2 bringup 入口 ────────────────
     nav2_bringup_dir = get_package_share_directory("nav2_bringup")
     bringup_launch = PathJoinSubstitution(
         [nav2_bringup_dir, "launch", "bringup_launch.py"]
@@ -37,49 +90,11 @@ def generate_launch_description():
             "map": map_yaml,
             "use_sim_time": use_sim_time,
             "params_file": params_file,
-            # 禁掉它内部的 robot_state_publisher—we’ll add our own
             "autostart": "true",
         }.items(),
     )
 
-    # ──────────────── ① robot_state_publisher  (base_link → sensors) ────────────────
-    rsp = Node(
-        package="robot_state_publisher",
-        executable="robot_state_publisher",
-        name="robot_state_publisher",
-        parameters=[{"robot_description": robot_desc, "use_sim_time": use_sim_time}],
-        output="screen",
-    )
-
-    # ──────────────── ② 静态 TF (补 laser / footprint / imu) ────────────────
-    static_tf = [
-        # base_link → base_footprint  (REP 105 中常见但可选)
-        Node(
-            package="tf2_ros",
-            executable="static_transform_publisher",
-            name="tf_basefootprint",
-            arguments=["0", "0", "0", "0", "0", "0", "base_link", "base_footprint"],
-            output="screen",
-        ),
-        # base_link → base_laser
-        Node(
-            package="tf2_ros",
-            executable="static_transform_publisher",
-            name="tf_baselaser",
-            arguments=["0", "0", "0.18", "0", "0", "0", "base_link", "base_laser"],
-            output="screen",
-        ),
-        # base_link → imu_link
-        Node(
-            package="tf2_ros",
-            executable="static_transform_publisher",
-            name="tf_imu",
-            arguments=["0", "0", "0.10", "0", "0", "0", "base_link", "imu_link"],
-            output="screen",
-        ),
-    ]
-
-    # ──────────────── ④ RViz2 方便调试 ────────────────
+    # ──────────────── RViz 可视化 ────────────────
     rviz = Node(
         package="rviz2",
         executable="rviz2",
@@ -102,26 +117,40 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "use_sim_time",
-                default_value="false",
+                default_value="true",
                 description="Use simulation clock if true",
             ),
             DeclareLaunchArgument(
                 "map",
                 default_value="/home/cy/Study/Nav_ws/maps/B406_half_map.yaml",
-                description="Full path to map file to load",
+                description="Map file",
             ),
             DeclareLaunchArgument(
                 "params_file",
                 default_value="/home/cy/Study/Nav_ws/config/nav2_params.yaml",
-                description="Full path to the nav2 parameters file",
+                description="Nav2 parameters",
             ),
             DeclareLaunchArgument(
                 "urdf",
                 default_value="/home/cy/Study/Nav_ws/urdf/sr_robot.urdf.xacro",
-                description="URDF or XACRO describing the robot model",
+                description="URDF robot model",
+            ),
+            DeclareLaunchArgument(
+                "world",
+                default_value="/home/cy/Study/Nav_ws/worlds/my_room.world",
+                description="Gazebo world file",
             ),
             SetEnvironmentVariable("RMW_IMPLEMENTATION", "rmw_fastrtps_cpp"),
+            gazebo,
             rsp,
+            spawn_entity,
+            Node(
+                package="robot_localization",
+                executable="ekf_node",
+                name="ekf_odom",
+                parameters=["/home/cy/Study/Nav_ws/config/ekf_odom.yaml"],
+                output="screen",
+            ),
             *static_tf,
             bringup,
             rviz,
