@@ -81,7 +81,7 @@ class SerialBridge(Node):
     def __init__(self):
         super().__init__("serial_bridge")
         self.declare_parameter(
-            "port", "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"
+            "port", "/dev/ttyUSB0"
         )
         self.declare_parameter("baudrate", 115200)
 

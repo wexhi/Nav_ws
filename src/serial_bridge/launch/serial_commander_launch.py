@@ -12,7 +12,7 @@ def generate_launch_description():
                 output="screen",
                 parameters=[
                     # 用你自己 ls -l /dev/serial/by-id/ 得到的那个链接
-                    {"port": "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"},
+                    {"port": "/dev/ttyUSB0"},
                     {"baudrate": 115200},
                 ],
             ),
