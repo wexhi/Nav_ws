@@ -97,6 +97,13 @@ def generate_launch_description():
         parameters=[{"use_sim_time": use_sim_time}],
         output="screen",
     )
+    # ──────────────── ⑤ Trajectory Recorder ────────────────
+    trajectory_recorder = Node(
+        package="serial_bridge",
+        executable="trajectory_recorder",
+        name="trajectory_recorder",
+        output="screen",
+    )
 
     return LaunchDescription(
         [
@@ -125,5 +132,6 @@ def generate_launch_description():
             *static_tf,
             bringup,
             rviz,
+            trajectory_recorder,
         ]
     )
