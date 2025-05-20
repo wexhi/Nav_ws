@@ -46,6 +46,7 @@ setup(
             "wasdx_teleop = serial_bridge.wasdx_teleop:main",
             "point_move = serial_bridge.point_move:main",
             "trajectory_recorder = serial_bridge.trajectory_recorder:main",
+            "trajectory_replayer = serial_bridge.trajectory_replayer:main",
         ],
     },
 )

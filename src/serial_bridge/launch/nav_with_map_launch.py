@@ -86,13 +86,14 @@ def generate_launch_description():
         name="rviz2",
         arguments=[
             "-d",
-            PathJoinSubstitution(
-                [
-                    get_package_share_directory("nav2_bringup"),
-                    "rviz",
-                    "nav2_default_view.rviz",
-                ]
-            ),
+            # PathJoinSubstitution(
+            #     [
+            #         get_package_share_directory("nav2_bringup"),
+            #         "rviz",
+            #         "nav2_default_view.rviz",
+            #     ]
+            # ),
+            "/home/cy/Study/Nav_ws/config/navigation_view.rviz",
         ],
         parameters=[{"use_sim_time": use_sim_time}],
         output="screen",
