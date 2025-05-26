@@ -1,13 +1,16 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.substitutions import PathJoinSubstitution
+import os
 from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
-    # Optional RViz config path
-    rviz_config_file = (
-        "/home/cy/Study/Nav_ws/config/slam_toolbox_view.rviz"  # Change if needed
+    # Get path to this package's share directory
+    pkg_serial_bridge = get_package_share_directory("serial_bridge")
+
+    # RViz config file (relative path converted to absolute using the package path)
+    rviz_config_file = os.path.join(
+        pkg_serial_bridge, "config", "slam_toolbox_view.rviz"
     )
 
     return LaunchDescription(
